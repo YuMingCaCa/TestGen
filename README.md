@@ -1,93 +1,104 @@
 🛡️ Event-B TestGen: Smart Contract Analysis
 
-Công cụ tự động sinh Test Case từ mô hình Event-B dành cho kiểm thử Smart Contract.
+Automated Test Case Generation Tool from Event-B models for Smart Contract verification.
 
-📖 Giới thiệu (Introduction)
+📖 Introduction
 
-Event-B TestGen là một công cụ web-based nhẹ nhàng giúp các nhà phát triển và kiểm thử viên phân tích các mô hình Event-B (thường dùng trong Smart Contracts). Công cụ này tự động phân tích file mô hình (.bum, .xml) và sinh ra các kịch bản kiểm thử (Test Cases) bao gồm cả trường hợp thành công (PASS) và trường hợp vi phạm điều kiện (FAIL/REVERT).
+Event-B TestGen is a lightweight web-based tool designed to help developers and testers analyze Event-B models (commonly used in Smart Contracts). This tool automatically parses model files (.bum, .xml) and generates verification scenarios (Test Cases), covering both successful executions (PASS) and condition violations (FAIL/REVERT).
 
-Dự án này giúp giảm thiểu thời gian viết test case thủ công và đảm bảo độ bao phủ các điều kiện (Guards) trong Smart Contract.
+This project aims to minimize manual test writing efforts and ensure comprehensive coverage of Guard conditions within Smart Contracts.
 
-✨ Tính năng chính (Key Features)
+✨ Key Features
 
-📂 Import Model: Hỗ trợ nạp file mô hình Event-B (.bum hoặc .xml) trực tiếp từ máy tính.
+📂 Model Import: Supports importing Event-B model files (.bum or .xml) directly from your local machine.
 
-🔍 Phân tích Cấu trúc: Tự động trích xuất và hiển thị trực quan:
+🔍 Structural Analysis: Automatically extracts and visualizes:
 
-Biến (Variables)
+Variables
 
-Bất biến (Invariants)
+Invariants
 
-Sự kiện (Events) & Điều kiện bảo vệ (Guards)
+Events & Guard Conditions
 
-⚡ Sinh Test Case Tự động:
+⚡ Automated Test Generation:
 
-PASS Case: Kiểm tra luồng thực thi thành công khi thỏa mãn tất cả Guards.
+PASS Case: Validates the successful execution flow when all Guards are satisfied.
 
-FAIL Case: Tự động tạo các kịch bản vi phạm từng Guard cụ thể (kiểm tra logic từ chối/revert của hợp đồng).
+FAIL Case: Automatically generates scenarios that violate specific Guards (verifying the contract's rejection/revert logic).
 
-📊 Thống kê trực quan: Dashboard hiển thị số lượng Test Case, độ bao phủ chuyển đổi (Transition Coverage) và phân bố Guard.
+📊 Visual Statistics: Dashboard displaying Test Case count, Transition Coverage, and Guard distribution.
 
-💾 Xuất dữ liệu: Xuất trọn bộ Test Suite ra file .json (nén trong .zip) để sử dụng cho các bước kiểm thử tiếp theo.
+💾 Data Export: Exports the complete Test Suite to .json format (compressed in .zip) for integration with further testing workflows.
 
 🚀 Demo
 
-![Mô tả](./assets/demo.png)
+![](./assets/demo.png)
 
-Giao diện chính với các thống kê và danh sách Test Case
+🛠️ Tech Stack
 
-🛠️ Công nghệ sử dụng (Tech Stack)
-
-Project được xây dựng hoàn toàn bằng Client-side (Frontend), không cần Backend server:
+The project is built entirely on the Client-side (Frontend), requiring no Backend server:
 
 Core: HTML5, JavaScript (ES6+).
 
-UI/UX: Tailwind CSS (Giao diện hiện đại, Responsive).
+UI/UX: Tailwind CSS (Modern, Responsive Design).
 
 Icons: FontAwesome 6.
 
 Libraries:
 
-JSZip: Để đóng gói và xuất báo cáo.
+JSZip: For packaging and exporting reports.
 
-DOMParser: Để phân tích cú pháp XML của file Event-B.
+DOMParser: For parsing Event-B XML structures.
 
-⚙️ Hướng dẫn sử dụng:
+⚙️ Installation & Usage
 
-Nhấn nút "Import .BUM" ở góc trên bên phải.
+Since this is a Static Web App, no complex environment setup (like Node.js or Python) is required.
 
-Chọn file mô hình Event-B (định dạng .bum hoặc .xml) từ máy tính.
+How to Run
 
-Nhấn "Generate Tests" để tool phân tích và sinh kịch bản.
+Clone this repository:
 
-Xem danh sách Test Case chi tiết ở cột bên phải.
+git clone [https://yumingcaca.github.io/TestGen/]
 
-Nhấn "Export Results" để tải về file báo cáo .zip.
+Open the index.html file in any modern web browser (Chrome, Edge, Firefox, etc.).
 
-📂 Cấu trúc thư mục
+User Guide
+
+Click the "Import .BUM" button at the top right corner.
+
+Select an Event-B model file (.bum or .xml) from your computer.
+
+Click "Generate Tests" to analyze the model and generate scenarios.
+
+Review the generated Test Cases in the right-hand panel.
+
+Click "Export Results" to download the test report as a .zip file.
+
+📂 Project Structure
 
 eventb-testgen/
-├── index.html          # File chính chứa toàn bộ mã nguồn (UI + Logic)
-├── README.md           # Tài liệu hướng dẫn dự án
-└── assets/             # (Tùy chọn) Chứa hình ảnh demo
+├── index.html          # Main application file (UI + Logic)
+├── README.md           # Project documentation
+└── assets/             # Assets directory
+    └── demo.png        # Screenshot for README
 
 
-🤝 Đóng góp (Contributing)
+🤝 Contributing
 
-Mọi đóng góp đều được hoan nghênh! Nếu bạn tìm thấy lỗi hoặc muốn cải tiến thuật toán sinh test, hãy:
+Contributions are always welcome! If you find any bugs or want to improve the test generation algorithm:
 
-Fork dự án.
+Fork the project.
 
-Tạo branch mới (git checkout -b feature/NewFeature).
+Create your feature branch (git checkout -b feature/NewFeature).
 
-Commit thay đổi (git commit -m 'Add some NewFeature').
+Commit your changes (git commit -m 'Add some NewFeature').
 
-Push lên branch (git push origin feature/NewFeature).
+Push to the branch (git push origin feature/NewFeature).
 
-Mở một Pull Request.
+Open a Pull Request.
 
 📝 License
 
-Dự án này được phát hành dưới giấy phép MIT License.
+This project is licensed under the MIT License.
 
 Developed for Smart Contract Verification Course.
