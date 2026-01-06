@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<org.eventb.core.machineFile org.eventb.core.configuration="org.eventb.core.fwd" version="3">
+    
+    <!-- KHAI BÁO BIẾN (VARIABLES) -->
+    <org.eventb.core.variable org.eventb.core.identifier="balance"/>
+    <org.eventb.core.variable org.eventb.core.identifier="currUser"/>
+    <org.eventb.core.variable org.eventb.core.identifier="currFunction"/>
+    <org.eventb.core.variable org.eventb.core.identifier="contractState"/>
+    <org.eventb.core.variable org.eventb.core.identifier="userRoleMap"/>
+
+    <!-- KHAI BÁO BẤT BIẾN (INVARIANTS) -->
+    <org.eventb.core.invariant org.eventb.core.label="inv1" org.eventb.core.predicate="currUser ∈ USER"/>
+    <org.eventb.core.invariant org.eventb.core.label="inv2" org.eventb.core.predicate="currFunction ∈ FUNCTION"/>
+    <org.eventb.core.invariant org.eventb.core.label="inv3" org.eventb.core.predicate="contractState ∈ STATE"/>
+    <org.eventb.core.invariant org.eventb.core.label="inv4" org.eventb.core.predicate="balance ∈ USER → ℤ"/>
+    <org.eventb.core.invariant org.eventb.core.label="inv5" org.eventb.core.predicate="∀u·u ∈ USER ⇒ balance(u) ≥ 0"/>
+
+    <!-- SỰ KIỆN KHỞI TẠO (INITIALISATION) -->
+    <org.eventb.core.event org.eventb.core.convergence="0" org.eventb.core.extended="false" org.eventb.core.label="INITIALISATION">
+        <org.eventb.core.action org.eventb.core.label="act1" org.eventb.core.assignment="contractState ≔ activeState"/>
+        <org.eventb.core.action org.eventb.core.label="act2" org.eventb.core.assignment="balance ≔ USER × {0}"/>
+        <org.eventb.core.action org.eventb.core.label="act3" org.eventb.core.assignment="currFunction ≔ depositFunc"/>
+    </org.eventb.core.event>
+
+    <!-- SỰ KIỆN: NẠP TIỀN (Deposit) -->
+    <org.eventb.core.event org.eventb.core.convergence="0" org.eventb.core.extended="false" org.eventb.core.label="Deposit">
+        <org.eventb.core.guard org.eventb.core.label="grd1" org.eventb.core.predicate="contractState = activeState"/>
+        <org.eventb.core.guard org.eventb.core.label="grd2" org.eventb.core.predicate="permissions(userRoleMap(u) ↦ depositFunc) = TRUE"/>
+        <org.eventb.core.guard org.eventb.core.label="grd3" org.eventb.core.predicate="amount > 0"/>
+        
+        <org.eventb.core.action org.eventb.core.label="act1" org.eventb.core.assignment="balance(u) ≔ balance(u) + amount"/>
+        <org.eventb.core.action org.eventb.core.label="act2" org.eventb.core.assignment="currUser ≔ u"/>
+    </org.eventb.core.event>
+
+    <!-- SỰ KIỆN: RÚT TIỀN (Withdraw) -->
+    <org.eventb.core.event org.eventb.core.convergence="0" org.eventb.core.extended="false" org.eventb.core.label="Withdraw">
+        <org.eventb.core.guard org.eventb.core.label="grd1" org.eventb.core.predicate="contractState = activeState"/>
+        <org.eventb.core.guard org.eventb.core.label="grd2" org.eventb.core.predicate="userRoleMap(u) = ownerRole"/>
+        <org.eventb.core.guard org.eventb.core.label="grd3" org.eventb.core.predicate="balance(u) ≥ amount"/>
+        
+        <org.eventb.core.action org.eventb.core.label="act1" org.eventb.core.assignment="balance(u) ≔ balance(u) - amount"/>
+        <org.eventb.core.action org.eventb.core.label="act2" org.eventb.core.assignment="currUser ≔ u"/>
+    </org.eventb.core.event>
+
+    <!-- SỰ KIỆN: CHUYỂN TIỀN (Transfer) -->
+    <org.eventb.core.event org.eventb.core.convergence="0" org.eventb.core.extended="false" org.eventb.core.label="Transfer">
+        <org.eventb.core.guard org.eventb.core.label="grd1" org.eventb.core.predicate="contractState = activeState"/>
+        <org.eventb.core.guard org.eventb.core.label="grd2" org.eventb.core.predicate="userRoleMap(admin) = adminRole"/>
+        <org.eventb.core.guard org.eventb.core.label="grd3" org.eventb.core.predicate="balance(from) ≥ amount"/>
+        
+        <org.eventb.core.action org.eventb.core.label="act1" org.eventb.core.assignment="balance(from) ≔ balance(from) - amount"/>
+        <org.eventb.core.action org.eventb.core.label="act2" org.eventb.core.assignment="balance(to) ≔ balance(to) + amount"/>
+    </org.eventb.core.event>
+
+    <!-- SỰ KIỆN: TẠM DỪNG (PauseContract) -->
+    <org.eventb.core.event org.eventb.core.convergence="0" org.eventb.core.extended="false" org.eventb.core.label="PauseContract">
+        <org.eventb.core.guard org.eventb.core.label="grd1" org.eventb.core.predicate="userRoleMap(u) = ownerRole"/>
+        <org.eventb.core.guard org.eventb.core.label="grd2" org.eventb.core.predicate="contractState = activeState"/>
+        
+        <org.eventb.core.action org.eventb.core.label="act1" org.eventb.core.assignment="contractState ≔ pausedState"/>
+    </org.eventb.core.event>
+
+</org.eventb.core.machineFile>

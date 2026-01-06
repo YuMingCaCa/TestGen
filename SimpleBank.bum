@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<org.eventb.core.machineFile org.eventb.core.configuration="org.eventb.core.fwd" version="3">
+    
+    <!-- KHAI BÁO BIẾN (VARIABLES) -->
+    <!-- Parser sẽ đọc thuộc tính identifier -->
+    <org.eventb.core.variable org.eventb.core.identifier="balance"/>
+    <org.eventb.core.variable org.eventb.core.identifier="is_frozen"/>
+    <org.eventb.core.variable org.eventb.core.identifier="account_owner"/>
+
+    <!-- KHAI BÁO BẤT BIẾN (INVARIANTS) -->
+    <!-- Parser sẽ đọc thuộc tính label và predicate -->
+    <org.eventb.core.invariant org.eventb.core.label="inv1" org.eventb.core.predicate="balance ∈ ℤ"/>
+    <org.eventb.core.invariant org.eventb.core.label="inv2" org.eventb.core.predicate="balance ≥ 0"/>
+    <org.eventb.core.invariant org.eventb.core.label="inv3" org.eventb.core.predicate="is_frozen ∈ BOOL"/>
+
+    <!-- SỰ KIỆN KHỞI TẠO (INITIALISATION) -->
+    <org.eventb.core.event org.eventb.core.convergence="0" org.eventb.core.extended="false" org.eventb.core.label="INITIALISATION">
+        <org.eventb.core.action org.eventb.core.label="act1" org.eventb.core.assignment="balance ≔ 0"/>
+        <org.eventb.core.action org.eventb.core.label="act2" org.eventb.core.assignment="is_frozen ≔ FALSE"/>
+    </org.eventb.core.event>
+
+    <!-- SỰ KIỆN: NẠP TIỀN (Deposit) -->
+    <org.eventb.core.event org.eventb.core.convergence="0" org.eventb.core.extended="false" org.eventb.core.label="Deposit">
+        <!-- Guard 1: Tài khoản không bị đóng băng -->
+        <org.eventb.core.guard org.eventb.core.label="grd1" org.eventb.core.predicate="is_frozen = FALSE"/>
+        <!-- Guard 2: Số tiền nạp phải lớn hơn 0 -->
+        <org.eventb.core.guard org.eventb.core.label="grd2" org.eventb.core.predicate="amount > 0"/>
+        
+        <org.eventb.core.action org.eventb.core.label="act1" org.eventb.core.assignment="balance ≔ balance + amount"/>
+    </org.eventb.core.event>
+
+    <!-- SỰ KIỆN: RÚT TIỀN (Withdraw) -->
+    <org.eventb.core.event org.eventb.core.convergence="0" org.eventb.core.extended="false" org.eventb.core.label="Withdraw">
+        <!-- Guard 1: Tài khoản không bị đóng băng -->
+        <org.eventb.core.guard org.eventb.core.label="grd1" org.eventb.core.predicate="is_frozen = FALSE"/>
+        <!-- Guard 2: Số dư phải đủ -->
+        <org.eventb.core.guard org.eventb.core.label="grd2" org.eventb.core.predicate="balance ≥ amount"/>
+        <!-- Guard 3: Số tiền rút phải lớn hơn 0 -->
+        <org.eventb.core.guard org.eventb.core.label="grd3" org.eventb.core.predicate="amount > 0"/>
+        
+        <org.eventb.core.action org.eventb.core.label="act1" org.eventb.core.assignment="balance ≔ balance - amount"/>
+    </org.eventb.core.event>
+
+    <!-- SỰ KIỆN: ĐÓNG BĂNG TÀI KHOẢN (AdminFreeze) -->
+    <org.eventb.core.event org.eventb.core.convergence="0" org.eventb.core.extended="false" org.eventb.core.label="AdminFreeze">
+        <!-- Guard 1: Chỉ admin mới được gọi -->
+        <org.eventb.core.guard org.eventb.core.label="grd1" org.eventb.core.predicate="caller = ADMIN_ROLE"/>
+        <!-- Guard 2: Hiện tại chưa đóng băng -->
+        <org.eventb.core.guard org.eventb.core.label="grd2" org.eventb.core.predicate="is_frozen = FALSE"/>
+        
+        <org.eventb.core.action org.eventb.core.label="act1" org.eventb.core.assignment="is_frozen ≔ TRUE"/>
+    </org.eventb.core.event>
+
+</org.eventb.core.machineFile>

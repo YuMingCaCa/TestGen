@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartContract Architecture (Engineering Standard)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #e5e7eb;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px;
+            margin: 0;
+        }
+
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        button {
+            background: #1e3a8a;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button:hover { background: #1e40af; }
+
+        /* --- CONTAINER --- */
+        .diagram-container {
+            position: relative;
+            background: white;
+            padding: 80px 60px 60px 60px;
+            border: 1px solid #d1d5db;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            width: 1350px; /* Rộng hơn để chứa đường dây vuông góc */
+            min-height: 800px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .diagram-header {
+            position: absolute;
+            top: 25px;
+            left: 60px;
+            border-left: 5px solid #1e3a8a;
+            padding-left: 15px;
+            z-index: 10;
+        }
+        .diagram-title { font-size: 22px; font-weight: 800; color: #111827; margin: 0; text-transform: uppercase; letter-spacing: 0.5px; }
+        .diagram-subtitle { font-size: 14px; color: #4b5563; margin-top: 5px; font-weight: 500; }
+
+        /* --- CỘT (PHASES) --- */
+        .phase-col {
+            width: 280px; /* Cố định chiều rộng cột */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-radius: 8px;
+            padding: 20px 10px;
+            position: relative;
+            z-index: 1;
+            border: 1px dashed #cbd5e1; /* Viền đứt cho Phase (Style kỹ thuật) */
+            height: 720px;
+        }
+
+        .p1 { background: #f0f9ff; border-color: #bae6fd; }
+        .p2 { background: #f5f3ff; border-color: #ddd6fe; }
+        .p3 { background: #f0fdf4; border-color: #bbf7d0; }
+
+        .phase-label {
+            font-weight: 700;
+            font-size: 15px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: white;
+            padding: 8px 0;
+            width: 100%;
+            border-radius: 4px;
+            border: 1px solid rgba(0,0,0,0.1);
+            text-transform: uppercase;
+        }
+        .p1 .phase-label { color: #0369a1; border-top: 3px solid #0ea5e9; }
+        .p2 .phase-label { color: #7c3aed; border-top: 3px solid #8b5cf6; }
+        .p3 .phase-label { color: #15803d; border-top: 3px solid #22c55e; }
+
+        /* --- NODE (HỘP) --- */
+        .node {
+            width: 220px;
+            background: white;
+            border: 1.5px solid #64748b;
+            border-radius: 4px; /* Bo góc ít hơn cho cứng cáp */
+            padding: 12px;
+            margin-bottom: 40px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: #1f2937;
+            box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
+            position: relative;
+            z-index: 5;
+        }
+
+        /* Mũi tên dọc (CSS) */
+        .node:not(:last-child)::after {
+            content: ''; position: absolute;
+            bottom: -40px; left: 50%; transform: translateX(-50%);
+            width: 1.5px; height: 40px; background-color: #64748b; z-index: -1;
+        }
+        .node:not(:last-child)::before {
+            content: ''; position: absolute;
+            bottom: -44px; left: 50%; transform: translateX(-50%);
+            border-left: 4px solid transparent; border-right: 4px solid transparent;
+            border-top: 6px solid #64748b; z-index: 0;
+        }
+
+        /* Style Node */
+        .node.input { border: 1.5px dashed #f59e0b; background: #fffbeb; }
+        .node.output { border: 2px solid #16a34a; background: #dcfce7; }
+        
+        .p1 .node { border-color: #3b82f6; }
+        .p2 .node { border-color: #8b5cf6; }
+        .p3 .node { border-color: #22c55e; }
+
+        /* SVG LAYER */
+        #connections-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 4; pointer-events: none;
+        }
+
+        /* Label */
+        .connection-label {
+            position: absolute;
+            background: white;
+            border: 1px solid;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            z-index: 6;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            white-space: nowrap;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .label-red { color: #dc2626; border-color: #fca5a5; background-color: #fef2f2; }
+        
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <button onclick="downloadImage()">
+            <i class="fa-solid fa-file-export"></i> Export for Paper
+        </button>
+    </div>
+
+    <div class="diagram-container" id="capture-area">
+        <div class="diagram-header">
+            <div class="diagram-title">System Architecture Overview</div>
+            <div class="diagram-subtitle">Figure 1. SmartContract2Event-B Framework</div>
+        </div>
+        
+        <svg id="connections-layer">
+            <defs>
+                <marker id="arrow-std" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+                    <path d="M1,1 L7,4 L1,7 L1,1" style="fill: #334155;" />
+                </marker>
+                <marker id="arrow-red" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+                    <path d="M1,1 L7,4 L1,7 L1,1" style="fill: #dc2626;" />
+                </marker>
+            </defs>
+        </svg>
+
+        <!-- CỘT 1 -->
+        <div class="phase-col p1">
+            <div class="phase-label">Phase 1: Specification</div>
+            <div class="node input" id="n1">Policies & Rules</div>
+            <div class="node" id="n2">Context Modeling</div>
+            <div class="node" id="n3">Abstract Machine</div>
+            <div class="node" id="n4">Refinement 1<br>(RBAC Guards)</div>
+            <div class="node" id="n5">Refinement 2<br>(Safety Invariants)</div>
+        </div>
+
+        <!-- CỘT 2 -->
+        <div class="phase-col p2">
+            <div class="phase-label">Phase 2: Verification</div>
+            <div class="node" id="v1">Rodin Platform</div>
+            <div class="node" id="v2">Proof Obligations</div>
+            <div class="node" id="v3">Auto/Interactive Prover</div>
+            <div class="node" id="v4">Verified Event-B Model</div>
+        </div>
+
+        <!-- CỘT 3 -->
+        <div class="phase-col p3">
+            <div class="phase-label">Phase 3: TestGen</div>
+            <div class="node" id="t1">TestGen Tool</div>
+            <div class="node" id="t2">Transition Graph</div>
+            <div class="node" id="t3">DFS Path Traversal</div>
+            <div class="node" id="t4">Test Suite Optimization</div>
+            <div class="node output" id="t5">Optimized Test Suite</div>
+        </div>
+    </div>
+
+    <script>
+        function drawLine(startId, endId, color, type, labelText = '') {
+            const svg = document.getElementById('connections-layer');
+            const container = document.querySelector('.diagram-container');
+            const cRect = container.getBoundingClientRect();
+            
+            const s = document.getElementById(startId).getBoundingClientRect();
+            const e = document.getElementById(endId).getBoundingClientRect();
+
+            // Tọa độ tương đối
+            const start = {
+                right: s.right - cRect.left,
+                left: s.left - cRect.left,
+                centerY: s.top + s.height/2 - cRect.top
+            };
+            const end = {
+                left: e.left - cRect.left,
+                right: e.right - cRect.left,
+                centerY: e.top + e.height/2 - cRect.top
+            };
+
+            let d = '';
+            let lblX = 0, lblY = 0;
+
+            if (type === 'ortho-up') {
+                // Đi vuông góc từ dưới lên trên (N5 -> V1)
+                // Right -> Mid Gap -> Up -> Right -> Left
+                const midGap = (start.right + end.left) / 2;
+                d = `M ${start.right} ${start.centerY} 
+                     L ${midGap} ${start.centerY} 
+                     L ${midGap} ${end.centerY} 
+                     L ${end.left} ${end.centerY}`;
+            } 
+            else if (type === 'ortho-feedback') {
+                // Feedback vuông góc (V3 -> N4)
+                // Left -> Mid Gap -> Down/Up -> Right -> Right
+                const midGap = (start.left + end.right) / 2;
+                d = `M ${start.left} ${start.centerY} 
+                     L ${midGap} ${start.centerY} 
+                     L ${midGap} ${end.centerY} 
+                     L ${end.right} ${end.centerY}`;
+                
+                lblX = midGap;
+                lblY = (start.centerY + end.centerY) / 2;
+            }
+            else if (type === 'ortho-feedback-long') {
+                // Feedback xa (T1 -> N4) - Đi vòng qua Phase 2
+                // Để không cắt ngang chữ, ta đi vào khoảng trống giữa các cột
+                // Left T1 -> Gap(2-3) -> Up -> Gap(1-2) -> Right N4 ?? Quá rắc rối
+                
+                // Phương án sạch: Đi xuống dưới đáy Phase 2 rồi vòng lên?
+                // Phương án tốt nhất: Đi thẳng (nếu không vướng) hoặc dùng "Cầu vượt"
+                
+                // Ở layout compact này, T1 và V1 ngang hàng. N4 ở dưới.
+                // Đường đi: Left T1 -> Gap(2-3) -> Down -> Left (xuyên qua khe V3-V4) -> Right N4
+                
+                const gap23 = start.left - 30; // Khoảng trống giữa P2 và P3
+                const gap12 = end.right + 30;  // Khoảng trống giữa P1 và P2
+                
+                // Tìm vị trí y thoáng nhất ở Phase 2 (Giữa V3 và V4)
+                const v3 = document.getElementById('v3').getBoundingClientRect();
+                const v4 = document.getElementById('v4').getBoundingClientRect();
+                const passY = (v3.bottom + v4.top) / 2 - cRect.top;
+
+                // T1 -> Left Gap -> Down to PassY -> Left across P2 -> Left Gap -> Up/Down to N4
+                
+                // Rút gọn: Chỉ cần đi vuông góc đơn giản xuyên qua
+                // Left T1 -> Gap 2-3 -> Down to target Y -> Left all the way to N4
+                
+                d = `M ${start.left} ${start.centerY} 
+                     L ${gap23} ${start.centerY}
+                     L ${gap23} ${end.centerY}
+                     L ${end.right} ${end.centerY}`;
+                     
+                // Lưu ý: Đường thẳng này sẽ cắt ngang qua chữ của Phase 2 (V1, V2, V3...)
+                // Cần phải đi vòng.
+                // T1 (Top) -> N4 (Bottom).
+                // Đường đi: T1 -> Gap23 -> Down -> (Ngang hàng N4) -> Cross P2 -> N4.
+                // Khi cross P2 ở ngang hàng N4, nó sẽ cắt vào V3.
+                
+                // FIX: Đi vòng lên trên cùng (Top) hoặc dưới cùng (Bottom).
+                // Chọn đi vòng xuống dưới đáy V4.
+                
+                const bottomY = v4.bottom - cRect.top + 20; // Dưới đáy V4
+                
+                d = `M ${start.left} ${start.centerY}
+                     L ${gap23} ${start.centerY}
+                     L ${gap23} ${bottomY}
+                     L ${gap12} ${bottomY}
+                     L ${gap12} ${end.centerY}
+                     L ${end.right} ${end.centerY}`;
+                     
+                lblX = gap23 - 20;
+                lblY = bottomY;
+            }
+
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path.setAttribute("d", d);
+            path.setAttribute("stroke", color);
+            path.setAttribute("stroke-width", "1.5"); /* Nét mảnh hơn cho chuẩn kỹ thuật */
+            path.setAttribute("fill", "none");
+            
+            if (color === '#dc2626') {
+                path.setAttribute("stroke-dasharray", "4,4");
+                path.setAttribute("marker-end", "url(#arrow-red)");
+            } else {
+                path.setAttribute("marker-end", "url(#arrow-std)");
+            }
+            svg.appendChild(path);
+
+            if (labelText) {
+                const lbl = document.createElement('div');
+                lbl.className = `connection-label ${color === '#dc2626' ? 'label-red' : ''}`;
+                lbl.innerHTML = labelText;
+                
+                // Định vị label thông minh
+                if(type === 'ortho-feedback') {
+                    lbl.style.left = (lblX - 35) + 'px';
+                    lbl.style.top = (lblY - 10) + 'px';
+                } else if (type === 'ortho-feedback-long') {
+                    lbl.style.left = (lblX - 60) + 'px'; // Gap 2-3
+                    lbl.style.top = (lblY - 10) + 'px'; // Bottom line
+                }
+                
+                container.appendChild(lbl);
+            }
+        }
+
+        window.onload = () => {
+            // Main Flow (Vuông góc)
+            drawLine('n5', 'v1', '#334155', 'ortho-up');
+            drawLine('v4', 't1', '#334155', 'ortho-up');
+
+            // Feedback (Vuông góc)
+            // Error: V3 -> N4
+            drawLine('v3', 'n4', '#dc2626', 'ortho-feedback', '<i class="fa-solid fa-xmark"></i> Error');
+            
+            // Logic Issue: T1 -> N4 (Đi vòng xuống đáy để không cắt chữ)
+            drawLine('t1', 'n4', '#dc2626', 'ortho-feedback-long', '<i class="fa-solid fa-triangle-exclamation"></i> Issue');
+        };
+
+        function downloadImage() {
+            const el = document.getElementById("capture-area");
+            html2canvas(el, { scale: 3, backgroundColor: "#ffffff" }).then(canvas => {
+                const a = document.createElement('a');
+                a.download = 'Architecture_Engineering_Standard.png';
+                a.href = canvas.toDataURL("image/png");
+                a.click();
+            });
+        }
+    </script>
+</body>
+</html>

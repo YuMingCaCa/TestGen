@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quy trình Sinh Test Case từ Event-B cho Smart Contract</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f3f4f6;
+        }
+        .connector-arrow {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 40px;
+            color: #6b7280;
+        }
+        .step-card {
+            transition: all 0.3s ease;
+        }
+        .step-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="p-8 flex flex-col items-center min-h-screen">
+
+    <!-- Header Section -->
+    <div class="text-center mb-10 max-w-3xl">
+        <h1 class="text-3xl font-bold text-blue-900 mb-2">QUY TRÌNH SINH TEST CASE TỪ EVENT-B</h1>
+        <p class="text-gray-600">Mô hình đề xuất cho báo cáo "Nghiên cứu phương pháp kiểm chứng hình thức"</p>
+        <p class="text-sm text-gray-500 italic mt-1">(Dựa trên SmartContract2Event-B & Phương pháp Model-Based Testing)</p>
+    </div>
+
+    <!-- Diagram Container -->
+    <div class="bg-white p-10 rounded-xl shadow-xl w-full max-w-4xl border border-gray-200">
+        
+        <!-- Step 1: Input -->
+        <div class="flex flex-col md:flex-row gap-6">
+            <!-- Left: Inputs -->
+            <div class="w-full md:w-1/3 flex flex-col justify-center">
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded step-card">
+                    <div class="flex items-center mb-2">
+                        <i class="fa-solid fa-file-code text-blue-600 mr-2"></i>
+                        <h3 class="font-bold text-blue-800">Smart Contract Policies</h3>
+                    </div>
+                    <p class="text-sm text-gray-600">Luật truy cập (Rules)<br>Solidity Code (Draft)</p>
+                </div>
+            </div>
+
+            <!-- Arrow Right -->
+            <div class="hidden md:flex flex-col justify-center items-center text-gray-400">
+                <i class="fa-solid fa-arrow-right text-2xl"></i>
+            </div>
+
+            <!-- Right: Event-B Modeling (Core of the Research) -->
+            <div class="w-full md:w-2/3">
+                <div class="bg-indigo-50 border-2 border-indigo-200 p-5 rounded-lg step-card relative">
+                    <span class="absolute -top-3 left-4 bg-indigo-600 text-white text-xs px-2 py-1 rounded">SmartContract2Event-B Framework</span>
+                    <h3 class="font-bold text-indigo-900 text-center mb-4">Mô hình hóa & Kiểm chứng (Rodin)</h3>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-white p-3 rounded border border-indigo-100 text-center">
+                            <div class="font-semibold text-sm text-indigo-700">Context</div>
+                            <div class="text-xs text-gray-500">Sets, Constants, Axioms</div>
+                        </div>
+                        <div class="bg-white p-3 rounded border border-indigo-100 text-center">
+                            <div class="font-semibold text-sm text-indigo-700">Machine</div>
+                            <div class="text-xs text-gray-500">Variables, Invariants, Events</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3 bg-green-50 p-2 rounded border border-green-200 text-center">
+                        <i class="fa-solid fa-check-circle text-green-600 mr-1"></i>
+                        <span class="text-xs font-bold text-green-800">Proof Obligations (Discharged)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vertical Connector -->
+        <div class="connector-arrow">
+            <i class="fa-solid fa-arrow-down text-2xl"></i>
+        </div>
+
+        <!-- Step 2: Test Generation (The logic based on Model Checking) -->
+        <div class="bg-purple-50 border-2 border-purple-200 p-6 rounded-lg step-card">
+            <h3 class="font-bold text-purple-900 text-center mb-4 text-lg">
+                <i class="fa-solid fa-gears mr-2"></i>Sinh Kịch Bản Kiểm Thử (Test Generation)
+            </h3>
+            
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <!-- Strategy 1 -->
+                <div class="flex-1 bg-white p-4 rounded shadow-sm w-full">
+                    <h4 class="font-bold text-purple-700 text-sm mb-2">1. Duyệt không gian trạng thái</h4>
+                    <p class="text-xs text-gray-600">Sử dụng <b>ProB Model Checker</b> để khám phá các trạng thái có thể xảy ra của hợp đồng.</p>
+                </div>
+
+                <div class="text-purple-300"><i class="fa-solid fa-plus"></i></div>
+
+                <!-- Strategy 2 -->
+                <div class="flex-1 bg-white p-4 rounded shadow-sm w-full">
+                    <h4 class="font-bold text-purple-700 text-sm mb-2">2. Phủ vết (Trace Coverage)</h4>
+                    <p class="text-xs text-gray-600">Tạo các chuỗi sự kiện (Traces) đại diện cho các kịch bản: <br>- <i>Happy path</i> (Hợp lệ)<br>- <i>Fail path</i> (Vi phạm quyền)</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vertical Connector -->
+        <div class="connector-arrow">
+            <i class="fa-solid fa-arrow-down text-2xl"></i>
+        </div>
+
+        <!-- Step 3: Abstract Test Cases -->
+        <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded step-card flex flex-col items-center">
+            <h3 class="font-bold text-yellow-800 mb-1">Abstract Test Cases (Event-B Traces)</h3>
+            <div class="text-xs font-mono bg-white px-3 py-2 rounded border border-yellow-200 text-gray-600 mt-2 w-full text-center">
+                Initialisation -> GrantAccess(User1) -> Deposit(User1) -> Withdraw(User1)
+            </div>
+        </div>
+
+        <!-- Vertical Connector -->
+        <div class="connector-arrow">
+            <i class="fa-solid fa-arrow-down text-2xl"></i>
+        </div>
+
+        <!-- Step 4: Concrete Test Scripts -->
+        <div class="bg-gray-800 text-white p-6 rounded-lg shadow-lg step-card relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-2 opacity-10">
+                <i class="fa-brands fa-ethereum text-9xl"></i>
+            </div>
+            
+            <h3 class="font-bold text-center text-xl mb-4 text-blue-300">Test Execution Framework</h3>
+            
+            <div class="flex flex-col md:flex-row gap-4 items-stretch">
+                <div class="flex-1 border border-gray-600 p-4 rounded bg-gray-700">
+                    <h4 class="font-bold text-sm mb-2 text-green-400">Chuyển đổi (Transformation)</h4>
+                    <p class="text-xs text-gray-300">Ánh xạ từ Event-B Trace sang <b>Solidity Test Script</b> (Truffle/Hardhat).</p>
+                </div>
+                
+                <div class="flex items-center justify-center text-gray-400">
+                    <i class="fa-solid fa-arrow-right"></i>
+                </div>
+
+                <div class="flex-1 border border-gray-600 p-4 rounded bg-gray-700">
+                    <h4 class="font-bold text-sm mb-2 text-green-400">Thực thi & So khớp</h4>
+                    <p class="text-xs text-gray-300">Chạy trên Ganache/Testnet. So sánh trạng thái thực tế với trạng thái dự kiến từ mô hình.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Footer / Explanation -->
+    <div class="mt-8 max-w-4xl text-gray-600 text-sm bg-white p-6 rounded-lg shadow border border-gray-200">
+        <h4 class="font-bold text-gray-800 mb-2">Giải thích sơ đồ:</h4>
+        <ul class="list-disc list-inside space-y-1">
+            <li><b>Giai đoạn 1 (Màu xanh dương/indigo):</b> Dựa trên bài báo <i>SmartContract2Event-B</i>, đặc tả Smart Contract được chuyển thành các máy Event-B (Context, Abstract Machine, Refinement) và được chứng minh tính đúng đắn trên Rodin.</li>
+            <li><b>Giai đoạn 2 (Màu tím):</b> Sử dụng công cụ kiểm thử mô hình (như ProB - thường đi kèm Rodin) để sinh ra các vết thực thi (traces). Đây là bước sinh "Abstract Test Cases".</li>
+            <li><b>Giai đoạn 3 (Màu xám/đen):</b> Các test case trừu tượng này được chuyển đổi thành mã kiểm thử thực tế (Javascript/Solidity) để chạy trên môi trường Blockchain mô phỏng, đảm bảo code cài đặt khớp với mô hình đã kiểm chứng.</li>
+        </ul>
+    </div>
+
+</body>
+</html>

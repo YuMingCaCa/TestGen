@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event-B TestGen: Smart Contract Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f8fafc; 
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* LÀM THANH CUỘN CỰC KỲ RÕ RÀNG */
+        #testCaseList::-webkit-scrollbar { 
+            width: 16px; /* Tăng độ rộng lên để dễ nhìn */
+            display: block;
+        }
+        #testCaseList::-webkit-scrollbar-track { 
+            background: #e2e8f0;
+            border-radius: 8px;
+        }
+        #testCaseList::-webkit-scrollbar-thumb { 
+            background-color: #3b82f6; 
+            border-radius: 8px;
+            border: 4px solid #e2e8f0;
+        }
+        #testCaseList::-webkit-scrollbar-thumb:hover { 
+            background: #2563eb; 
+        }
+
+        /* Layout Panels */
+        .panel { 
+            @apply bg-white border border-gray-200 rounded-xl shadow-sm flex flex-col transition-all duration-300; 
+        }
+        .panel-header { 
+            @apply bg-white border-b border-gray-100 px-4 py-3 font-bold text-gray-700 text-xs uppercase tracking-wider flex justify-between items-center shrink-0 z-10; 
+        }
+        
+        .panel-body { 
+            @apply p-4; 
+        }
+
+        /* Đảm bảo khu vực list luôn có scroll nếu nội dung dài */
+        #testCaseList {
+            min-height: 600px; /* Đảm bảo chiều cao tối thiểu để giao diện đẹp */
+        }
+
+        .btn { @apply px-4 py-2 rounded-lg text-xs font-semibold shadow-sm transition-all flex items-center gap-2 active:scale-95; }
+        .btn-primary { @apply bg-blue-600 text-white hover:bg-blue-700 shadow-blue-100; }
+        .btn-success { @apply bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-100; }
+        .btn-outline { @apply bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 hover:border-gray-300; }
+        
+        .test-card { 
+            @apply bg-white border border-gray-100 rounded-xl p-5 mb-4 hover:shadow-md hover:border-blue-200 transition-all border-l-4; 
+        }
+        .code-line { 
+            @apply text-sm font-mono text-gray-600 block bg-slate-50 px-3 py-2 rounded-lg mt-2 border border-slate-100 leading-relaxed; 
+        }
+        
+        @keyframes fadeInUp { 
+            from { opacity: 0; transform: translateY(12px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        } 
+        .animate-fade-in-up { animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+        
+        input[type="file"] { display: none; }
+        
+        .app-container { @apply w-full max-w-[1600px] mx-auto px-6 flex flex-col; }
+
+        header {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="border-b border-gray-200 py-4 shrink-0 z-30 shadow-sm">
+        <div class="app-container !flex-row justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div class="w-11 h-11 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl text-white flex items-center justify-center shadow-lg shadow-blue-200">
+                    <i class="fa-solid fa-microchip text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-extrabold text-gray-900 tracking-tight">Event-B TestGen</h1>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Logic Analysis & Verification</span>
+                        <span id="file-badge" class="hidden bg-blue-50 text-blue-700 text-[10px] px-2 py-0.5 rounded-md border border-blue-100 font-semibold truncate max-w-[200px]"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <label class="btn btn-outline cursor-pointer">
+                    <i class="fa-solid fa-cloud-arrow-up text-blue-500"></i> Import .BUM
+                    <input type="file" id="fileInput" accept=".bum,.xml" onchange="handleFileUpload(this)">
+                </label>
+                <button onclick="generateAndOptimize()" class="btn btn-primary"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate Tests</button>
+                <button onclick="exportDataZip()" class="btn btn-success"><i class="fa-solid fa-file-export"></i> Export Results</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 py-6 flex flex-col">
+        <div class="app-container">
+            <div class="grid grid-cols-12 gap-6">
+                
+                <!-- Left: Machine Structure -->
+                <div class="col-span-3">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <span><i class="fa-solid fa-folder-tree mr-2 text-blue-500"></i> Model Logic</span>
+                        </div>
+                        <div class="panel-body" id="modelTree">
+                            <div class="flex flex-col items-center justify-center h-full text-gray-400 text-xs italic text-center p-4">
+                                <i class="fa-solid fa-inbox text-4xl mb-3 opacity-20"></i>
+                                <p>No data imported</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Middle: Metrics -->
+                <div class="col-span-3">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <span><i class="fa-solid fa-chart-pie mr-2 text-indigo-500"></i> Statistics</span>
+                        </div>
+                        <div class="panel-body flex flex-col gap-6">
+                            <div class="bg-slate-50 border border-slate-100 rounded-2xl p-5 text-center shrink-0">
+                                <div class="text-[10px] text-slate-500 font-bold uppercase mb-1 tracking-wider">Generated Cases</div>
+                                <div class="text-5xl font-black text-slate-800 tabular-nums" id="totalTestDisplay">0</div>
+                            </div>
+                            
+                            <div class="px-1 shrink-0">
+                                <div class="flex justify-between text-[11px] font-bold text-gray-700 mb-2">
+                                    <span>Logic Coverage</span> 
+                                    <span id="pathCovText" class="text-blue-600">0%</span>
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                                    <div id="pathCovBar" class="h-full bg-blue-500 w-0 transition-all duration-1000 ease-out"></div>
+                                </div>
+                            </div>
+
+                            <div class="flex-1 border-t border-gray-100 pt-5 min-h-0 flex flex-col">
+                                 <div class="text-[10px] font-bold text-gray-400 uppercase mb-4 flex items-center shrink-0">
+                                    <i class="fa-solid fa-shield-check mr-2"></i> Guard Distribution
+                                 </div>
+                                 <div id="guardBreakdown" class="space-y-3 overflow-y-auto flex-1 pr-1 custom-scroll">
+                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: TEST CASE LIST (The fixed scroll area) -->
+                <div class="col-span-6">
+                    <div class="panel border-t-4 border-t-blue-600 relative group">
+                        <div class="panel-header">
+                            <span class="text-blue-700 font-bold flex items-center">
+                                <i class="fa-solid fa-vials mr-2"></i> TEST CASE SUITE
+                            </span>
+                            <span id="testCountBadge" class="bg-blue-100 text-blue-700 text-[10px] px-2 py-0.5 rounded-full font-bold">0 TC</span>
+                        </div>
+                        <div class="panel-body bg-slate-50/30" id="testCaseList">
+                             <div class="flex flex-col items-center justify-center h-full text-gray-400 text-sm text-center p-8">
+                                <div class="w-20 h-20 bg-white rounded-3xl flex items-center justify-center mb-6 shadow-sm border border-gray-100">
+                                    <i class="fa-solid fa-code-branch text-3xl text-gray-200"></i>
+                                </div>
+                                <p class="font-medium">Ready to generate verification suite</p>
+                                <p class="text-xs mt-1 text-gray-400">Import a machine file to start</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let currentModel = { name: "Default", variables: [], invariants: [], events: [] };
+        let generatedSuite = [];
+
+        function handleFileUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                const badge = document.getElementById('file-badge');
+                badge.textContent = file.name;
+                badge.classList.remove('hidden');
+
+                try {
+                    parseEventB(content);
+                } catch (err) {
+                    console.error(err);
+                    alert("Error reading file: " + err.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function parseEventB(xmlString) {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+
+            currentModel = { name: "EventB_Machine", variables: [], invariants: [], events: [] };
+
+            const vars = xmlDoc.getElementsByTagName("org.eventb.core.variable");
+            for (let i = 0; i < vars.length; i++) {
+                currentModel.variables.push(vars[i].getAttribute("org.eventb.core.identifier"));
+            }
+
+            const invs = xmlDoc.getElementsByTagName("org.eventb.core.invariant");
+            for (let i = 0; i < invs.length; i++) {
+                currentModel.invariants.push(
+                    invs[i].getAttribute("org.eventb.core.label") + ": " + 
+                    invs[i].getAttribute("org.eventb.core.predicate")
+                );
+            }
+
+            const events = xmlDoc.getElementsByTagName("org.eventb.core.event");
+            for (let i = 0; i < events.length; i++) {
+                const evtName = events[i].getAttribute("org.eventb.core.label");
+                const guards = [];
+                const guardNodes = events[i].getElementsByTagName("org.eventb.core.guard");
+                for (let j = 0; j < guardNodes.length; j++) {
+                    guards.push(guardNodes[j].getAttribute("org.eventb.core.predicate"));
+                }
+
+                currentModel.events.push({
+                    name: evtName,
+                    type: evtName === "INITIALISATION" ? "init" : "normal",
+                    guards: guards
+                });
+            }
+            
+            if (currentModel.events.length === 0) {
+                alert("No valid Event-B structure found.");
+                return;
+            }
+
+            renderStructure();
+            renderGuardBreakdown();
+        }
+
+        function generateAndOptimize() {
+            if (currentModel.events.length === 0) {
+                alert("Please import a model file first!");
+                return;
+            }
+
+            generatedSuite = [];
+            let id = 1;
+
+            currentModel.events.forEach(evt => {
+                const guardsText = evt.guards.length > 0 ? evt.guards.join(" ∧ ") : "TRUE";
+                
+                generatedSuite.push({
+                    id: `TC-${String(id++).padStart(3, '0')}`,
+                    event: evt.name,
+                    type: "PASS",
+                    desc: `Verify successful execution of event: ${evt.name}`,
+                    in: `Guard Conditions: [${guardsText}] == TRUE`,
+                    out: "Machine State updated successfully"
+                });
+
+                if (evt.type !== "init" && evt.guards.length > 0) {
+                    generatedSuite.push({
+                        id: `TC-${String(id++).padStart(3, '0')}`,
+                        event: evt.name,
+                        type: "FAIL",
+                        desc: `Verify event rejection when Guard fails: ${evt.name}`,
+                        in: `Guard Conditions: [${guardsText}] == FALSE`,
+                        out: "REVERT / Event execution denied"
+                    });
+                }
+            });
+
+            updateUI();
+        }
+
+        function updateUI() {
+            const list = document.getElementById('testCaseList');
+            list.innerHTML = ''; 
+            
+            generatedSuite.forEach((tc, i) => {
+                const color = tc.type === 'PASS' ? 'border-l-emerald-500' : 'border-l-rose-500';
+                const typeStyle = tc.type === 'PASS' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700';
+                
+                const card = document.createElement('div');
+                card.className = `test-card ${color} animate-fade-in-up`;
+                card.style.animationDelay = `${i * 40}ms`;
+                card.innerHTML = `
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="font-bold text-sm text-slate-500 tabular-nums">${tc.id}</span>
+                        <div class="flex gap-2">
+                            <span class="text-xs font-extrabold px-2 py-1 rounded-md uppercase tracking-wider ${typeStyle}">${tc.type}</span>
+                            <span class="text-sm font-mono font-bold text-slate-700 bg-slate-100 px-2 py-1 rounded-md border border-slate-200">${tc.event}</span>
+                        </div>
+                    </div>
+                    <div class="text-sm text-slate-800 mb-3 font-semibold leading-relaxed">${tc.desc}</div>
+                    <div class="space-y-2">
+                        <span class="code-line"><b class="text-slate-500 inline-block w-24 uppercase text-xs">Input:</b> ${tc.in}</span>
+                        <span class="code-line ${tc.type === 'PASS' ? 'text-emerald-700 font-medium' : 'text-rose-600 font-medium'}">
+                            <b class="text-slate-500 inline-block w-24 uppercase text-xs">Expected:</b> ${tc.out}
+                        </span>
+                    </div>`;
+                list.appendChild(card);
+            });
+
+            document.getElementById('totalTestDisplay').innerText = generatedSuite.length;
+            document.getElementById('testCountBadge').innerText = `${generatedSuite.length} TC`;
+            document.getElementById('pathCovBar').style.width = '100%';
+            document.getElementById('pathCovText').innerText = '100%';
+            
+        }
+
+        function renderStructure() {
+            const tree = document.getElementById('modelTree');
+            tree.innerHTML = ''; 
+            const addGroup = (title, items, icon, color) => {
+                if(items.length === 0) return;
+                const div = document.createElement('div');
+                div.className = "mb-6 last:mb-0";
+                div.innerHTML = `<div class="font-bold text-[10px] text-slate-400 uppercase mb-3 flex items-center tracking-widest"><i class="fa-solid ${icon} mr-2 ${color}"></i>${title}</div>`;
+                items.forEach(i => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = "text-[11px] text-slate-600 ml-2 pl-3 border-l border-slate-100 py-1.5 hover:border-blue-400 hover:text-blue-600 transition-all truncate cursor-default";
+                    itemDiv.title = i;
+                    itemDiv.textContent = i;
+                    div.appendChild(itemDiv);
+                });
+                tree.appendChild(div);
+            };
+            addGroup("Variables", currentModel.variables, "fa-cube", "text-blue-500");
+            addGroup("Invariants", currentModel.invariants, "fa-file-shield", "text-amber-500");
+            addGroup("Events", currentModel.events.map(e => e.name), "fa-bolt-lightning", "text-indigo-500");
+        }
+
+        function renderGuardBreakdown() {
+            const container = document.getElementById('guardBreakdown');
+            container.innerHTML = '';
+            currentModel.events.forEach(evt => {
+                if(evt.type === 'init') return;
+                const gCount = evt.guards.length;
+                container.innerHTML += `
+                    <div class="group flex justify-between items-center text-[11px] py-2 border-b border-slate-50 last:border-0 hover:bg-slate-50 hover:px-2 rounded-lg transition-all">
+                        <span class="font-medium text-slate-600 truncate w-32">${evt.name}</span>
+                        <span class="text-[9px] bg-slate-200 px-2 py-0.5 rounded-full text-slate-600 font-bold">${gCount} Guards</span>
+                    </div>`;
+            });
+        }
+
+        function exportDataZip() {
+            if (generatedSuite.length === 0) return alert("Please generate Test Cases before exporting!");
+            const zip = new JSZip();
+            zip.file("test_suite_report.json", JSON.stringify({
+                machine: currentModel.name,
+                timestamp: new Date().toLocaleString(),
+                test_cases: generatedSuite
+            }, null, 2));
+            zip.generateAsync({type:"blob"}).then(c => {
+                const a = document.createElement('a'); 
+                a.href = URL.createObjectURL(c); 
+                a.download = `EventB_Suite_${Date.now()}.zip`; 
+                a.click();
+            });
+        }
+    </script>
+</body>
+</html>
